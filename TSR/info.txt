@@ -1,0 +1,7 @@
+sudo apt-get install libpcap-dev
+
+On ne doit pas utiliser les filtres . On doit récupérer les .h
+
+fonction getop pour parser les options
+
+On suppose que le packet est toujours de type ethernet
