@@ -1,32 +1,46 @@
-#include <net/ethernet.h>
-#include <netinet/ether.h>
-#include <netinet/in.h>
-#include <stdio.h>
-void cast_packet_ethernet(const u_char *packet)
+#include "include/ethernet.h"
+
+void castPacketEthernet(const u_char *packet,int profondeur,int verbose)
 {
-	const struct ether_header *ethernet_header =(const struct  ether_header *) packet;
-	printf("Cast packet\n");
-	printf("Dest @ %s\n",ether_ntoa((const struct ether_addr *)&ethernet_header->ether_dhost));
-	printf("Sour @ %s\n",ether_ntoa((const struct ether_addr *)&ethernet_header->ether_shost));
-	size_t ethernet_header_size = sizeof(struct ether_header);
-	printf("Taille Header %zu \n",ethernet_header_size);
+	const struct ether_header *ethernetHeader =(const struct  ether_header *) packet;
+	printPacketEthernet(ethernetHeader,profondeur,verbose);
 	
-	uint16_t ether_type = ntohs(ethernet_header->ether_type);//Convert to little indian (Touts les champs de taille > 1 octet)
-	//Traitement de la valeur de type
-	switch(ether_type){
+	uint16_t etherType = ntohs(ethernetHeader->ether_type);//Convert to little indian (Touts les champs de taille > 1 octet)
+	switch(etherType){
 		case ETHERTYPE_IP:
-			printf("%d : IPV4\n",ether_type);
-			//Traitement du packet
-			//cast_packet_ipv4(packet+tailleheader)
+			castPacketIp(packet+ETHERNET_LEN,profondeur+1,verbose);
 			break;
 		case ETHERTYPE_ARP:
-			printf("%d : ARP\n",ether_type);
-			//Traitement du packet
+			castPacketArp(packet+ETHERNET_LEN,profondeur+1,verbose);
 			break;
 		case ETHERTYPE_IPV6:
-			printf("%d : IPV6\n",ether_type);
+			break;
 		default:
-			printf("%d : Type non reconnu\n",ether_type);
-}
+			tab(profondeur);printf(": Type non reconnu\n",etherType);
+					}
 }
 
+void printPacketEthernet(const struct ether_header *ethernetHeader,int profondeur,int verbose)
+{
+	uint16_t etherType = ntohs(ethernetHeader->ether_type);
+
+	printf("\033[%sm",ETHERNET_ROUGE);
+	if(verbose==1)
+	{
+		printf("ETHERNET");
+	}
+	else if(verbose==2)
+	{
+	printf("ETHERNET : Taille Header %d ",ETHERNET_LEN);
+	printf("Dest @ %s ",ether_ntoa((const struct ether_addr *)&ethernetHeader->ether_dhost));
+	printf("Sour @ %s ",ether_ntoa((const struct ether_addr *)&ethernetHeader->ether_shost));
+	printf("\n");
+	}
+	else if (verbose==3)
+	{
+	tab(profondeur);printf("ETHERNET : Taille Header %d \n",ETHERNET_LEN);
+	tab(profondeur);printf("Dest @ %s\n",ether_ntoa((const struct ether_addr *)&ethernetHeader->ether_dhost));
+	tab(profondeur);printf("Sour @ %s\n",ether_ntoa((const struct ether_addr *)&ethernetHeader->ether_shost));
+	}
+	printf("\033[%sm","0");
+}
